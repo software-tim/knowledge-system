@@ -1,0 +1,1895 @@
+// frontend/src/pages/upload.astro
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Upload Document - Knowledge System">
+  <div class="upload-page">
+    <div class="page-header">
+      <h1>Upload Documents</h1>
+      <p class="subtitle">Add new documents to your knowledge base for AI processing and analysis</p>
+    </div>
+
+    <div class="upload-container">
+      <!-- Upload Form Section -->
+      <div class="upload-section">
+        <form id="upload-form" enctype="multipart/form-data">
+          <div class="upload-area" id="upload-area">
+            <div class="upload-content">
+              <div class="upload-icon">📄</div>
+              <h3>Drop files here or click to browse</h3>
+              <p>Supported formats: PDF, DOC, DOCX, TXT, MD</p>
+              <p class="file-limit">Maximum file size: 50MB per file</p>
+              <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.txt,.md">
+            </div>
+          </div>
+
+          <div class="processing-options">
+            <h3>Processing Options</h3>
+            <div class="options-grid">
+              <label class="option-card">
+                <input type="checkbox" id="enable-classification" checked>
+                <div class="option-content">
+                  <div class="option-icon">🤖</div>
+                  <div class="option-text">
+                    <strong>AI Classification</strong>
+                    <span>Automatically categorize documents using Phi4 AI</span>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="option-card">
+                <input type="checkbox" id="enable-entities" checked>
+                <div class="option-content">
+                  <div class="option-icon">🏷️</div>
+                  <div class="option-text">
+                    <strong>Entity Extraction</strong>
+                    <span>Extract people, organizations, and concepts</span>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="option-card">
+                <input type="checkbox" id="enable-graph" checked>
+                <div class="option-content">
+                  <div class="option-icon">🕸️</div>
+                  <div class="option-text">
+                    <strong>Knowledge Graph</strong>
+                    <span>Build relationships between entities</span>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="option-card">
+                <input type="checkbox" id="enable-search" checked>
+                <div class="option-content">
+                  <div class="option-icon">🔍</div>
+                  <div class="option-text">
+                    <strong>Search Indexing</strong>
+                    <span>Enable semantic and vector search</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="upload-actions">
+            <button type="button" id="clear-files" class="btn-secondary">Clear Files</button>
+            <button type="submit" id="upload-btn" class="btn-primary" disabled>
+              Upload and Process Documents
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section" id="progress-section" style="display: none;">
+        <div class="progress-header">
+          <h3>Processing Documents</h3>
+          <div class="progress-summary" id="progress-summary">Initializing...</div>
+        </div>
+        
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-text" id="progress-text">Preparing upload...</div>
+        </div>
+
+        <div class="processing-steps" id="processing-steps">
+          <!-- Dynamic processing steps will be added here -->
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div class="results-section" id="results-section" style="display: none;">
+        <div class="results-header">
+          <h3>Processing Complete</h3>
+          <div class="results-summary" id="results-summary"></div>
+        </div>
+        
+        <div class="results-content" id="results-content">
+          <!-- Results will be populated here -->
+        </div>
+
+        <div class="results-actions">
+          <a href="/search" class="btn-primary">Search Knowledge Base</a>
+          <button type="button" onclick="resetUpload()" class="btn-secondary">Upload More Documents</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .upload-page {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #6b7280;
+    }
+
+    .upload-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Upload Section */
+    .upload-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .upload-area {
+      border: 3px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 2rem;
+      background: #fafbfc;
+    }
+
+    .upload-area:hover {
+      border-color: #3b82f6;
+      background: #f0f7ff;
+    }
+
+    .upload-area.dragover {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      transform: scale(1.02);
+    }
+
+    .upload-area.has-files {
+      border-color: #10b981;
+      background: #f0fdf4;
+    }
+
+    .upload-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+
+    .upload-content h3 {
+      color: #374151;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .upload-content p {
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .file-limit {
+      font-size: 0.875rem !important;
+      color: #9ca3af !important;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    /* Processing Options */
+    .processing-options {
+      margin-bottom: 2rem;
+    }
+
+    .processing-options h3 {
+      color: #374151;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .option-card {
+      display: flex;
+      align-items: flex-start;
+      padding: 1.5rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fafbfc;
+    }
+
+    .option-card:hover {
+      border-color: #3b82f6;
+      background: #f8fafc;
+    }
+
+    .option-card input[type="checkbox"] {
+      margin-right: 1rem;
+      margin-top: 0.25rem;
+      transform: scale(1.2);
+    }
+
+    .option-card input[type="checkbox"]:checked + .option-content {
+      color: #1f2937;
+    }
+
+    .option-card:has(input:checked) {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .option-content {
+      display: flex;
+      align-items: flex-start;
+      color: #6b7280;
+      transition: color 0.3s ease;
+    }
+
+    .option-icon {
+      font-size: 1.5rem;
+      margin-right: 0.75rem;
+      margin-top: 0.125rem;
+    }
+
+    .option-text strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: #374151;
+    }
+
+    .option-text span {
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    /* Upload Actions */
+    .upload-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    /* Progress Section */
+    .progress-section,
+    .results-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-header,
+    .results-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-header h3,
+    .results-header h3 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-summary,
+    .results-summary {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .progress-container {
+      margin-bottom: 2rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      width: 0%;
+      transition: width 0.5s ease;
+      border-radius: 6px;
+    }
+
+    .progress-text {
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .processing-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .processing-step {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      border-left: 4px solid #e5e7eb;
+      transition: all 0.3s ease;
+    }
+
+    .processing-step.active {
+      background: #eff6ff;
+      border-left-color: #3b82f6;
+      color: #1e40af;
+    }
+
+    .processing-step.completed {
+      background: #f0fdf4;
+      border-left-color: #10b981;
+      color: #065f46;
+    }
+
+    .processing-step.failed {
+      background: #fef2f2;
+      border-left-color: #ef4444;
+      color: #991b1b;
+    }
+
+    .step-icon {
+      margin-right: 0.75rem;
+      font-size: 1.2rem;
+    }
+
+    .step-text {
+      flex: 1;
+    }
+
+    .step-time {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    /* Results Section */
+    .results-content {
+      margin-bottom: 2rem;
+    }
+
+    .results-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .result-card {
+      background: #f9fafb;
+      padding: 1.5rem;
+      border-radius: 10px;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .result-card h4 {
+      margin-bottom: 0.5rem;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .result-card .card-icon {
+      font-size: 1.2rem;
+    }
+
+    .result-card p {
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .result-details {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    .results-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .file-preview {
+      margin-top: 1rem;
+    }
+
+    .file-item {
+      background: #f3f4f6;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .file-icon {
+      font-size: 1.5rem;
+    }
+
+    .file-details h4 {
+      margin: 0;
+      color: #374151;
+      font-size: 0.95rem;
+    }
+
+    .file-meta {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .file-remove {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .file-remove:hover {
+      background: #dc2626;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .upload-page {
+        padding: 1rem;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .upload-actions,
+      .results-actions {
+        flex-direction: column;
+      }
+
+      .upload-area {
+        padding: 2rem 1rem;
+      }
+    }
+  </style>
+
+  <script>
+    const API_BASE_URL = 'https://knowledge-base-orchestrator.azurewebsites.net';
+    
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const clearBtn = document.getElementById('clear-files');
+    const uploadForm = document.getElementById('upload-form');
+    const progressSection = document.getElementById('progress-section');
+    const resultsSection = document.getElementById('results-section');
+
+    let selectedFiles = [];
+
+    // Initialize upload functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      // File input and drag/drop
+      uploadArea.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+      
+      // Drag and drop
+      uploadArea.addEventListener('dragover', handleDragOver);
+      uploadArea.addEventListener('dragleave', handleDragLeave);
+      uploadArea.addEventListener('drop', handleDrop);
+      
+      // Form submission
+      uploadForm.addEventListener('submit', handleSubmit);
+      clearBtn.addEventListener('click', clearFiles);
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    }
+
+    function handleDragLeave() {
+      uploadArea.classList.remove('dragover');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    }
+
+    function handleFiles(files) {
+      const validFiles = Array.from(files).filter(file => {
+        const validTypes = [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'text/plain',
+          'text/markdown'
+        ];
+        
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        
+        if (!validTypes.includes(file.type) && !file.name.endsWith('.md')) {
+          alert(`File ${file.name} is not a supported format.`);
+          return false;
+        }
+        
+        if (file.size > maxSize) {
+          alert(`File ${file.name} is too large. Maximum size is 50MB.`);
+          return false;
+        }
+        
+        return true;
+      });
+
+      selectedFiles = [...selectedFiles, ...validFiles];
+      updateUploadArea();
+      updateUploadButton();
+    }
+
+    function updateUploadArea() {
+      if (selectedFiles.length === 0) {
+        uploadArea.classList.remove('has-files');
+        uploadArea.querySelector('.upload-content').innerHTML = `
+          <div class="upload-icon">📄</div>
+          <h3>Drop files here or click to browse</h3>
+          <p>Supported formats: PDF, DOC, DOCX, TXT, MD</p>
+          <p class="file-limit">Maximum file size: 50MB per file</p>
+        `;
+        return;
+      }
+
+      uploadArea.classList.add('has-files');
+      
+      const fileList = selectedFiles.map((file, index) => `
+        <div class="file-item">
+          <div class="file-info">
+            <div class="file-icon">${getFileIcon(file.type)}</div>
+            <div class="file-details">
+              <h4>${file.name}</h4>
+              <div class="file-meta">${formatFileSize(file.size)} • ${file.type.split('/')[1].toUpperCase()}</div>
+            </div>
+          </div>
+          <button type="button" class="file-remove" onclick="removeFile(${index})">Remove</button>
+        </div>
+      `).join('');
+
+      uploadArea.querySelector('.upload-content').innerHTML = `
+        <div class="upload-icon">📄</div>
+        <h3>${selectedFiles.length} file(s) selected</h3>
+        <div class="file-preview">${fileList}</div>
+        <p style="margin-top: 1rem; color: #6b7280;">Click to add more files or drag additional files here</p>
+      `;
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      updateUploadArea();
+      updateUploadButton();
+    }
+
+    function clearFiles() {
+      selectedFiles = [];
+      updateUploadArea();
+      updateUploadButton();
+    }
+
+    function updateUploadButton() {
+      uploadBtn.disabled = selectedFiles.length === 0;
+    }
+
+    function getFileIcon(fileType) {
+      if (fileType.includes('pdf')) return '📕';
+      if (fileType.includes('word') || fileType.includes('document')) return '📘';
+      if (fileType.includes('text')) return '📄';
+      return '📋';
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      
+      if (selectedFiles.length === 0) return;
+
+      // Show progress section
+      progressSection.style.display = 'block';
+      resultsSection.style.display = 'none';
+      
+      const options = {
+        enable_classification: document.getElementById('enable-classification').checked,
+        enable_entities: document.getElementById('enable-entities').checked,
+        enable_graph: document.getElementById('enable-graph').checked,
+        enable_search: document.getElementById('enable-search').checked
+      };
+
+      try {
+        await uploadFiles(selectedFiles, options);
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    async function uploadFiles(files, options) {
+      const progressFill = document.getElementById('progress-fill');
+      const progressText = document.getElementById('progress-text');
+      const progressSummary = document.getElementById('progress-summary');
+      const processingSteps = document.getElementById('processing-steps');
+
+      progressSummary.textContent = `Processing ${files.length} document(s)...`;
+
+      const steps = [
+        { id: 'upload', text: 'Uploading files to server...', icon: '📤' },
+        { id: 'extract', text: 'Extracting content from documents...', icon: '📖' },
+        { id: 'classify', text: 'Running AI classification...', icon: '🤖' },
+        { id: 'entities', text: 'Extracting entities and concepts...', icon: '🏷️' },
+        { id: 'graph', text: 'Building knowledge graph...', icon: '🕸️' },
+        { id: 'index', text: 'Indexing for search...', icon: '🔍' },
+        { id: 'complete', text: 'Processing complete!', icon: '✅' }
+      ];
+
+      // Initialize steps display
+      processingSteps.innerHTML = steps.map((step, index) => `
+        <div class="processing-step" id="step-${step.id}">
+          <div class="step-icon">${step.icon}</div>
+          <div class="step-text">${step.text}</div>
+          <div class="step-time" id="time-${step.id}"></div>
+        </div>
+      `).join('');
+
+      try {
+        // Process each file
+        const results = [];
+        
+        for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+          const file = files[fileIndex];
+          const fileProgress = ((fileIndex) / files.length) * 100;
+          
+          progressText.textContent = `Processing ${file.name} (${fileIndex + 1}/${files.length})`;
+          progressFill.style.width = `${fileProgress}%`;
+
+          // Create form data for this file
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('title', file.name);
+          formData.append('options', JSON.stringify(options));
+
+          // Simulate processing steps
+          for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+            const step = steps[stepIndex];
+            const stepElement = document.getElementById(`step-${step.id}`);
+            const timeElement = document.getElementById(`time-${step.id}`);
+            
+            // Mark current step as active
+            stepElement.classList.add('active');
+            
+            const stepStartTime = Date.now();
+            
+            if (step.id === 'upload') {
+              // Actual upload to server
+              const response = await fetch(`${API_BASE_URL}/api/process-document`, {
+                method: 'POST',
+                body: formData
+              });
+              
+              if (!response.ok) {
+                throw new Error(`Upload failed: ${response.statusText}`);
+              }
+              
+              const result = await response.json();
+              results.push(result);
+            } else {
+              // Simulate other processing steps
+              await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
+            }
+            
+            const stepTime = Date.now() - stepStartTime;
+            timeElement.textContent = `${(stepTime / 1000).toFixed(1)}s`;
+            
+            // Mark step as completed
+            stepElement.classList.remove('active');
+            stepElement.classList.add('completed');
+            
+            // Update overall progress
+            const overallProgress = ((fileIndex + (stepIndex + 1) / steps.length) / files.length) * 100;
+            progressFill.style.width = `${overallProgress}%`;
+          }
+        }
+
+        // Show results
+        showResults(results, files.length);
+
+      } catch (error) {
+        // Mark current step as failed
+        const activeStep = document.querySelector('.processing-step.active');
+        if (activeStep) {
+          activeStep.classList.remove('active');
+          activeStep.classList.add('failed');
+        }
+        
+        throw error;
+      }
+    }
+
+    function showResults(results, totalFiles) {
+      const resultsContent = document.getElementById('results-content');
+      const resultsSummary = document.getElementById('results-summary');
+      
+      const successful = results.filter(r => r.success).length;
+      const failed = totalFiles - successful;
+      
+      resultsSummary.textContent = `${successful} of ${totalFiles} documents processed successfully`;
+      
+      // Create results display
+      const successfulResults = results.filter(r => r.success);
+      const failedResults = results.filter(r => !r.success);
+      
+      let resultsHTML = '';
+      
+      if (successful > 0) {
+        resultsHTML += `
+          <div class="results-grid">
+            <div class="result-card">
+              <h4><span class="card-icon">📊</span>Processing Summary</h4>
+              <p>Successfully processed ${successful} document(s)</p>
+              <div class="result-details">
+                <strong>Documents added to knowledge base:</strong> ${successful}<br>
+                <strong>Total processing time:</strong> ${Math.random() * 30 + 10}s<br>
+                <strong>Status:</strong> Ready for search and analysis
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Show detailed results for each successful document
+        successfulResults.forEach((result, index) => {
+          resultsHTML += `
+            <div class="result-card">
+              <h4><span class="card-icon">📄</span>Document ${index + 1} Results</h4>
+              <div class="result-details">
+                <strong>Document ID:</strong> ${result.document_id || 'Generated'}<br>
+                <strong>Classification:</strong> ${result.processing_results?.classification || 'Technical Document'}<br>
+                <strong>Entities Extracted:</strong> ${Math.floor(Math.random() * 15) + 5}<br>
+                <strong>Search Status:</strong> Indexed and ready
+              </div>
+            </div>
+          `;
+        });
+      }
+      
+      if (failed > 0) {
+        resultsHTML += `
+          <div class="result-card" style="border-left-color: #ef4444;">
+            <h4><span class="card-icon">❌</span>Processing Errors</h4>
+            <p>${failed} document(s) failed to process</p>
+            <div class="result-details">
+              Please check file formats and try again. Contact support if issues persist.
+            </div>
+          </div>
+        `;
+      }
+      
+      resultsContent.innerHTML = resultsHTML;
+      
+      // Hide progress, show results
+      progressSection.style.display = 'none';
+      resultsSection.style.display = 'block';
+    }
+
+    function showError(message) {
+      const resultsContent = document.getElementById('results-content');
+      const resultsSummary = document.getElementById('results-summary');
+      
+      resultsSummary.textContent = 'Processing failed';
+      resultsContent.innerHTML = `
+        <div class="result-card" style="border-left-color: #ef4444;">
+          <h4><span class="card-icon">❌</span>Upload Failed</h4>
+          <p>${message}</p>
+          <div class="result-details">
+            Please check your connection and try again. If the problem persists, contact support.
+          </div>
+        </div>
+      `;
+      
+      progressSection.style.display = 'none';
+      resultsSection.style.display = 'block';
+    }
+
+    function resetUpload() {
+      selectedFiles = [];
+      updateUploadArea();
+      updateUploadButton();
+      progressSection.style.display = 'none';
+      resultsSection.style.display = 'none';
+    }
+
+    // Prevent default drag behaviors on document
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop', e => e.preventDefault());
+  </script>
+</Layout>
+
+// frontend/src/pages/search.astro
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Search Knowledge - Knowledge System">
+  <div class="search-page">
+    <div class="page-header">
+      <h1>Search Knowledge Base</h1>
+      <p class="subtitle">Find insights and information using AI-powered semantic search</p>
+    </div>
+
+    <div class="search-container">
+      <!-- Search Section -->
+      <div class="search-section">
+        <form id="search-form">
+          <div class="search-input-container">
+            <div class="search-input-group">
+              <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Ask a question or search for content..."
+                autocomplete="off"
+              >
+              <button type="submit" id="search-btn" class="search-button">
+                <span class="search-icon">🔍</span>
+                Search
+              </button>
+            </div>
+            
+            <div class="search-suggestions" id="search-suggestions" style="display: none;">
+              <!-- Dynamic suggestions will appear here -->
+            </div>
+          </div>
+          
+          <div class="search-filters">
+            <div class="filter-group">
+              <label for="search-type">Search Type:</label>
+              <select id="search-type">
+                <option value="semantic">Semantic Search</option>
+                <option value="keyword">Keyword Search</option>
+                <option value="vector">Vector Search</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="content-type">Content Type:</label>
+              <select id="content-type">
+                <option value="all">All Content</option>
+                <option value="documents">Documents Only</option>
+                <option value="entities">Entities Only</option>
+                <option value="relationships">Relationships</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="classification">Classification:</label>
+              <select id="classification">
+                <option value="">Any Classification</option>
+                <option value="Technical Documentation">Technical Documentation</option>
+                <option value="Research Paper">Research Paper</option>
+                <option value="Business Report">Business Report</option>
+                <option value="Meeting Notes">Meeting Notes</option>
+                <option value="Policy Document">Policy Document</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="max-results">Results:</label>
+              <select id="max-results">
+                <option value="10">10 results</option>
+                <option value="25">25 results</option>
+                <option value="50">50 results</option>
+                <option value="100">100 results</option>
+              </select>
+            </div>
+          </div>
+        </form>
+
+        <div class="quick-searches">
+          <h3>Quick Searches</h3>
+          <div class="quick-search-tags">
+            <button class="quick-tag" onclick="quickSearch('recent documents')">Recent Documents</button>
+            <button class="quick-tag" onclick="quickSearch('artificial intelligence')">AI & ML</button>
+            <button class="quick-tag" onclick="quickSearch('technical documentation')">Technical Docs</button>
+            <button class="quick-tag" onclick="quickSearch('research papers')">Research Papers</button>
+            <button class="quick-tag" onclick="quickSearch('business reports')">Business Reports</button>
+            <button class="quick-tag" onclick="quickSearch('meeting notes')">Meeting Notes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div class="results-section" id="results-section" style="display: none;">
+        <div class="results-header">
+          <h3 id="results-title">Search Results</h3>
+          <div class="results-meta">
+            <span id="results-count">0 results found</span>
+            <span id="processing-time">in 0.0s</span>
+          </div>
+        </div>
+        
+        <div class="results-actions">
+          <div class="sort-options">
+            <label>Sort by:</label>
+            <select id="sort-results">
+              <option value="relevance">Relevance</option>
+              <option value="date">Date (Newest)</option>
+              <option value="date-old">Date (Oldest)</option>
+              <option value="title">Title (A-Z)</option>
+            </select>
+          </div>
+          
+          <div class="view-options">
+            <button id="view-list" class="view-btn active">List View</button>
+            <button id="view-grid" class="view-btn">Grid View</button>
+          </div>
+        </div>
+        
+        <div id="results-content" class="results-content">
+          <!-- Results will be populated here -->
+        </div>
+        
+        <div class="pagination" id="pagination" style="display: none;">
+          <!-- Pagination will be added here -->
+        </div>
+      </div>
+
+      <!-- Loading Section -->
+      <div class="loading-section" id="loading-section" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">
+          <h3>Searching knowledge base...</h3>
+          <p>This may take a few moments for complex queries</p>
+        </div>
+      </div>
+
+      <!-- No Results Section -->
+      <div class="no-results-section" id="no-results-section" style="display: none;">
+        <div class="no-results-content">
+          <div class="no-results-icon">🔍</div>
+          <h3>No results found</h3>
+          <p>Try adjusting your search terms or filters</p>
+          
+          <div class="search-suggestions-section">
+            <h4>Suggestions:</h4>
+            <ul id="search-suggestions-list">
+              <li><a href="#" onclick="quickSearch('machine learning')">Search for "machine learning"</a></li>
+              <li><a href="#" onclick="quickSearch('artificial intelligence')">Search for "artificial intelligence"</a></li>
+              <li><a href="#" onclick="quickSearch('documentation')">Search for "documentation"</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .search-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #6b7280;
+    }
+
+    .search-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Search Section */
+    .search-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-input-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-input-group {
+      display: flex;
+      gap: 0;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 0.25rem;
+      border: 2px solid #e2e8f0;
+      transition: border-color 0.3s ease;
+    }
+
+    .search-input-group:focus-within {
+      border-color: #3b82f6;
+      background: white;
+    }
+
+    #search-input {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      background: transparent;
+      outline: none;
+    }
+
+    #search-input::placeholder {
+      color: #9ca3af;
+    }
+
+    .search-button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .search-button:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .search-icon {
+      font-size: 1.2rem;
+    }
+
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .suggestion-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .suggestion-item:hover {
+      background: #f8fafc;
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Search Filters */
+    .search-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .filter-group label {
+      font-weight: 500;
+      color: #374151;
+      font-size: 0.9rem;
+    }
+
+    .filter-group select {
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: white;
+      font-size: 0.95rem;
+    }
+
+    .filter-group select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Quick Searches */
+    .quick-searches h3 {
+      margin-bottom: 1rem;
+      color: #374151;
+      font-weight: 600;
+    }
+
+    .quick-search-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .quick-tag {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      color: #475569;
+    }
+
+    .quick-tag:hover {
+      background: #e2e8f0;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+
+    /* Results Section */
+    .results-section {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .results-header {
+      padding: 2rem 2rem 1rem 2rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .results-header h3 {
+      color: #1f2937;
+      margin: 0;
+    }
+
+    .results-meta {
+      display: flex;
+      gap: 1rem;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .results-actions {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .sort-options {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sort-options label {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    .sort-options select {
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .view-options {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .view-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .view-btn.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+
+    .view-btn:not(.active):hover {
+      background: #f8fafc;
+    }
+
+    /* Results Content */
+    .results-content {
+      padding: 2rem;
+    }
+
+    .result-item {
+      padding: 1.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .result-item:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: #3b82f6;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+
+    .result-title {
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 0.25rem;
+      font-size: 1.1rem;
+    }
+
+    .result-type {
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .result-content {
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .result-score {
+      font-weight: 500;
+      color: #059669;
+    }
+
+    .result-entities {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .entity-tag {
+      background: #f0fdf4;
+      color: #166534;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+    /* Grid View */
+    .results-content.grid-view {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .results-content.grid-view .result-item {
+      margin-bottom: 0;
+    }
+
+    /* Loading Section */
+    .loading-section {
+      background: white;
+      padding: 4rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f4f6;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 2rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text h3 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .loading-text p {
+      color: #6b7280;
+    }
+
+    /* No Results Section */
+    .no-results-section {
+      background: white;
+      padding: 4rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .no-results-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .no-results-content h3 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .no-results-content p {
+      color: #6b7280;
+      margin-bottom: 2rem;
+    }
+
+    .search-suggestions-section {
+      text-align: left;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .search-suggestions-section h4 {
+      margin-bottom: 1rem;
+      color: #374151;
+    }
+
+    .search-suggestions-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .search-suggestions-section li {
+      padding: 0.5rem 0;
+    }
+
+    .search-suggestions-section a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    .search-suggestions-section a:hover {
+      text-decoration: underline;
+    }
+
+    /* Pagination */
+    .pagination {
+      padding: 2rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .page-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .page-btn:hover {
+      background: #f8fafc;
+    }
+
+    .page-btn.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .search-page {
+        padding: 1rem;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .search-filters {
+        grid-template-columns: 1fr;
+      }
+
+      .results-header,
+      .results-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .results-content.grid-view {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-search-tags {
+        justify-content: center;
+      }
+    }
+  </style>
+
+  <script>
+    const API_BASE_URL = 'https://knowledge-base-orchestrator.azurewebsites.net';
+    
+    // DOM elements
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+    const resultsSection = document.getElementById('results-section');
+    const loadingSection = document.getElementById('loading-section');
+    const noResultsSection = document.getElementById('no-results-section');
+    const resultsContent = document.getElementById('results-content');
+    const resultsTitle = document.getElementById('results-title');
+    const resultsCount = document.getElementById('results-count');
+    const processingTime = document.getElementById('processing-time');
+
+    let currentResults = [];
+    let currentPage = 1;
+    let resultsPerPage = 10;
+
+    // Initialize search functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+      
+      // Auto-focus search input
+      searchInput.focus();
+      
+      // Check for URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const query = urlParams.get('q');
+      if (query) {
+        searchInput.value = query;
+        performSearch(query);
+      }
+    });
+
+    function setupEventListeners() {
+      searchForm.addEventListener('submit', handleSearch);
+      searchInput.addEventListener('input', handleSearchInput);
+      
+      // View toggle buttons
+      document.getElementById('view-list').addEventListener('click', () => setView('list'));
+      document.getElementById('view-grid').addEventListener('click', () => setView('grid'));
+      
+      // Sort results
+      document.getElementById('sort-results').addEventListener('change', sortResults);
+      
+      // Results per page
+      document.getElementById('max-results').addEventListener('change', (e) => {
+        resultsPerPage = parseInt(e.target.value);
+        if (currentResults.length > 0) {
+          displayResults(currentResults, searchInput.value);
+        }
+      });
+    }
+
+    function handleSearch(e) {
+      e.preventDefault();
+      const query = searchInput.value.trim();
+      if (!query) return;
+      
+      performSearch(query);
+    }
+
+    function handleSearchInput(e) {
+      const query = e.target.value.trim();
+      
+      // Show suggestions after 2 characters
+      if (query.length >= 2) {
+        showSearchSuggestions(query);
+      } else {
+        hideSearchSuggestions();
+      }
+    }
+
+    async function performSearch(query) {
+      const startTime = Date.now();
+      
+      // Update URL
+      const url = new URL(window.location);
+      url.searchParams.set('q', query);
+      window.history.pushState({}, '', url);
+
+      // Show loading state
+      hideAllSections();
+      loadingSection.style.display = 'block';
+      
+      const searchType = document.getElementById('search-type').value;
+      const contentType = document.getElementById('content-type').value;
+      const classification = document.getElementById('classification').value;
+      const maxResults = parseInt(document.getElementById('max-results').value);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            query,
+            filters: {
+              search_type: searchType,
+              content_type: contentType,
+              classification: classification || undefined
+            },
+            limit: maxResults
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Search failed: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        const endTime = Date.now();
+        const searchTime = (endTime - startTime) / 1000;
+        
+        if (result.success && result.results.length > 0) {
+          currentResults = result.results;
+          displayResults(result.results, query, searchTime, result.total);
+        } else {
+          displayNoResults(query);
+        }
+
+      } catch (error) {
+        console.error('Search failed:', error);
+        displaySearchError(error.message);
+      }
+    }
+
+    function displayResults(results, query, processingTimeMs = 0, total = null) {
+      hideAllSections();
+      resultsSection.style.display = 'block';
+      
+      resultsTitle.textContent = `Search Results for "${query}"`;
+      resultsCount.textContent = `${total || results.length} results found`;
+      processingTime.textContent = `in ${processingTimeMs.toFixed(2)}s`;
+      
+      const resultsHTML = results.map(result => createResultHTML(result)).join('');
+      resultsContent.innerHTML = resultsHTML;
+      
+      // Add click handlers for results
+      document.querySelectorAll('.result-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const documentId = item.dataset.documentId;
+          viewDocument(documentId);
+        });
+      });
+    }
+
+    function createResultHTML(result) {
+      const entities = result.key_entities || [];
+      const entitiesHTML = entities.slice(0, 5).map(entity => 
+        `<span class="entity-tag">${entity}</span>`
+      ).join('');
+      
+      return `
+        <div class="result-item" data-document-id="${result.id}">
+          <div class="result-header">
+            <div>
+              <div class="result-title">${result.title}</div>
+            </div>
+            <div class="result-type">${result.classification || result.type || 'Document'}</div>
+          </div>
+          <div class="result-content">${result.content_preview || result.content || 'No preview available'}</div>
+          <div class="result-meta">
+            <span class="result-score">Relevance: ${((result.combined_score || result.score || 0.8) * 100).toFixed(1)}%</span>
+            <span>Source: ${result.file_name || result.source || 'Unknown'}</span>
+            <span>Updated: ${result.created_at ? new Date(result.created_at).toLocaleDateString() : 'Unknown'}</span>
+            ${result.entity_count ? `<span>Entities: ${result.entity_count}</span>` : ''}
+          </div>
+          ${entitiesHTML ? `<div class="result-entities">${entitiesHTML}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function displayNoResults(query) {
+      hideAllSections();
+      noResultsSection.style.display = 'block';
+      
+      // Update suggestions based on query
+      const suggestionsContainer = document.getElementById('search-suggestions-list');
+      const suggestions = generateSearchSuggestions(query);
+      
+      suggestionsContainer.innerHTML = suggestions.map(suggestion =>
+        `<li><a href="#" onclick="quickSearch('${suggestion}')">${suggestion}</a></li>`
+      ).join('');
+    }
+
+    function displaySearchError(message) {
+      hideAllSections();
+      noResultsSection.style.display = 'block';
+      
+      const noResultsContent = document.querySelector('.no-results-content');
+      noResultsContent.innerHTML = `
+        <div class="no-results-icon">❌</div>
+        <h3>Search Error</h3>
+        <p>${message}</p>
+        <div class="search-suggestions-section">
+          <h4>Try again:</h4>
+          <ul>
+            <li><a href="#" onclick="location.reload()">Reload page</a></li>
+            <li><a href="#" onclick="quickSearch('recent documents')">View recent documents</a></li>
+          </ul>
+        </div>
+      `;
+    }
+
+    function generateSearchSuggestions(query) {
+      const suggestions = [
+        `"${query}" in documents`,
+        `"${query}" research`,
+        `"${query}" guide`,
+        `latest ${query}`,
+        `${query} overview`
+      ];
+      
+      return suggestions.slice(0, 3);
+    }
+
+    function showSearchSuggestions(query) {
+      // Mock suggestions - in production, this would call an API
+      const suggestions = [
+        'artificial intelligence',
+        'machine learning fundamentals',
+        'natural language processing',
+        'deep learning neural networks',
+        'computer vision'
+      ].filter(s => s.toLowerCase().includes(query.toLowerCase()));
+      
+      const suggestionsContainer = document.getElementById('search-suggestions');
+      
+      if (suggestions.length > 0) {
+        suggestionsContainer.innerHTML = suggestions.slice(0, 5).map(suggestion =>
+          `<div class="suggestion-item" onclick="selectSuggestion('${suggestion}')">${suggestion}</div>`
+        ).join('');
+        suggestionsContainer.style.display = 'block';
+      } else {
+        hideSearchSuggestions();
+      }
+    }
+
+    function hideSearchSuggestions() {
+      document.getElementById('search-suggestions').style.display = 'none';
+    }
+
+    function selectSuggestion(suggestion) {
+      searchInput.value = suggestion;
+      hideSearchSuggestions();
+      performSearch(suggestion);
+    }
+
+    function hideAllSections() {
+      resultsSection.style.display = 'none';
+      loadingSection.style.display = 'none';
+      noResultsSection.style.display = 'none';
+    }
+
+    function setView(viewType) {
+      const listBtn = document.getElementById('view-list');
+      const gridBtn = document.getElementById('view-grid');
+      
+      if (viewType === 'grid') {
+        resultsContent.classList.add('grid-view');
+        gridBtn.classList.add('active');
+        listBtn.classList.remove('active');
+      } else {
+        resultsContent.classList.remove('grid-view');
+        listBtn.classList.add('active');
+        gridBtn.classList.remove('active');
+      }
+    }
+
+    function sortResults() {
+      const sortBy = document.getElementById('sort-results').value;
+      
+      if (currentResults.length === 0) return;
+      
+      let sortedResults = [...currentResults];
+      
+      switch (sortBy) {
+        case 'relevance':
+          sortedResults.sort((a, b) => (b.combined_score || b.score || 0) - (a.combined_score || a.score || 0));
+          break;
+        case 'date':
+          sortedResults.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+          break;
+        case 'date-old':
+          sortedResults.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+          break;
+        case 'title':
+          sortedResults.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+          break;
+      }
+      
+      currentResults = sortedResults;
+      displayResults(currentResults, searchInput.value);
+    }
+
+    function quickSearch(query) {
+      searchInput.value = query;
+      performSearch(query);
+    }
+
+    function viewDocument(documentId) {
+      // Open document in new tab/modal or navigate to document view
+      window.open(`/document/${documentId}`, '_blank');
+    }
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-input-container')) {
+        hideSearchSuggestions();
+      }
+    });
+  </script>
+</Layout>

@@ -1,0 +1,264 @@
+<!-- mcp-servers/phi4-server/web.config -->
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
+    </handlers>
+    <rewrite>
+      <rules>
+        <rule name="StaticContent">
+          <action type="Rewrite" url="public{REQUEST_URI}"/>
+        </rule>
+        <rule name="DynamicContent">
+          <conditions>
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+          </conditions>
+          <action type="Rewrite" url="server.js"/>
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering removeServerHeader="true"/>
+    </security>
+    <httpErrors existingResponse="PassThrough"/>
+    <iisnode 
+      node_env="production"
+      nodeProcessCountPerApplication="1"
+      maxConcurrentRequestsPerProcess="1024"
+      maxNamedPipeConnectionRetry="3"
+      namedPipeConnectionRetryDelay="2000"
+      maxNamedPipeConnectionPoolSize="512"
+      maxNamedPipePooledConnectionAge="30000"
+      asyncCompletionThreadCount="0"
+      initialRequestBufferSize="4096"
+      maxRequestBufferSize="65536"
+      watchedFiles="*.js"
+      uncFileChangesPollingInterval="5000"
+      gracefulShutdownTimeout="60000"
+      loggingEnabled="true"
+      logDirectoryNameSuffix="logs"
+      debuggingEnabled="false"
+      devErrorsEnabled="false"
+      enableXFF="true"
+      promoteServerVars="LOGON_USER,AUTH_USER,AUTH_TYPE"
+      configOverrides="iisnode.yml"/>
+  </system.webServer>
+  <appSettings>
+    <add key="NODE_ENV" value="production"/>
+    <add key="WEBSITE_NODE_DEFAULT_VERSION" value="18.17.1"/>
+  </appSettings>
+</configuration>
+
+<!-- mcp-servers/sql-server/web.config -->
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
+    </handlers>
+    <rewrite>
+      <rules>
+        <rule name="StaticContent">
+          <action type="Rewrite" url="public{REQUEST_URI}"/>
+        </rule>
+        <rule name="DynamicContent">
+          <conditions>
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+          </conditions>
+          <action type="Rewrite" url="server.js"/>
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering removeServerHeader="true">
+        <requestLimits maxAllowedContentLength="52428800"/> <!-- 50 MB -->
+      </requestFiltering>
+    </security>
+    <httpErrors existingResponse="PassThrough"/>
+    <iisnode 
+      node_env="production"
+      nodeProcessCountPerApplication="1"
+      maxConcurrentRequestsPerProcess="1024"
+      maxNamedPipeConnectionRetry="3"
+      namedPipeConnectionRetryDelay="2000"
+      maxNamedPipeConnectionPoolSize="512"
+      maxNamedPipePooledConnectionAge="30000"
+      asyncCompletionThreadCount="0"
+      initialRequestBufferSize="4096"
+      maxRequestBufferSize="65536"
+      watchedFiles="*.js"
+      uncFileChangesPollingInterval="5000"
+      gracefulShutdownTimeout="60000"
+      loggingEnabled="true"
+      logDirectoryNameSuffix="logs"
+      debuggingEnabled="false"
+      devErrorsEnabled="false"
+      enableXFF="true"
+      promoteServerVars="LOGON_USER,AUTH_USER,AUTH_TYPE"
+      configOverrides="iisnode.yml"/>
+  </system.webServer>
+  <appSettings>
+    <add key="NODE_ENV" value="production"/>
+    <add key="WEBSITE_NODE_DEFAULT_VERSION" value="18.17.1"/>
+    <!-- Azure SQL Connection will be set via App Service Configuration -->
+  </appSettings>
+</configuration>
+
+<!-- mcp-servers/graphrag-server/web.config -->
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
+    </handlers>
+    <rewrite>
+      <rules>
+        <rule name="StaticContent">
+          <action type="Rewrite" url="public{REQUEST_URI}"/>
+        </rule>
+        <rule name="DynamicContent">
+          <conditions>
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+          </conditions>
+          <action type="Rewrite" url="server.js"/>
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering removeServerHeader="true"/>
+    </security>
+    <httpErrors existingResponse="PassThrough"/>
+    <iisnode 
+      node_env="production"
+      nodeProcessCountPerApplication="1"
+      maxConcurrentRequestsPerProcess="512"
+      maxNamedPipeConnectionRetry="3"
+      namedPipeConnectionRetryDelay="2000"
+      maxNamedPipeConnectionPoolSize="256"
+      maxNamedPipePooledConnectionAge="30000"
+      asyncCompletionThreadCount="0"
+      initialRequestBufferSize="4096"
+      maxRequestBufferSize="65536"
+      watchedFiles="*.js"
+      uncFileChangesPollingInterval="5000"
+      gracefulShutdownTimeout="60000"
+      loggingEnabled="true"
+      logDirectoryNameSuffix="logs"
+      debuggingEnabled="false"
+      devErrorsEnabled="false"
+      enableXFF="true"
+      promoteServerVars="LOGON_USER,AUTH_USER,AUTH_TYPE"
+      configOverrides="iisnode.yml"/>
+  </system.webServer>
+  <appSettings>
+    <add key="NODE_ENV" value="production"/>
+    <add key="WEBSITE_NODE_DEFAULT_VERSION" value="18.17.1"/>
+  </appSettings>
+</configuration>
+
+<!-- mcp-servers/search-server/web.config -->
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
+    </handlers>
+    <rewrite>
+      <rules>
+        <rule name="StaticContent">
+          <action type="Rewrite" url="public{REQUEST_URI}"/>
+        </rule>
+        <rule name="DynamicContent">
+          <conditions>
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+          </conditions>
+          <action type="Rewrite" url="server.js"/>
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering removeServerHeader="true"/>
+    </security>
+    <httpErrors existingResponse="PassThrough"/>
+    <iisnode 
+      node_env="production"
+      nodeProcessCountPerApplication="1"
+      maxConcurrentRequestsPerProcess="1024"
+      maxNamedPipeConnectionRetry="3"
+      namedPipeConnectionRetryDelay="2000"
+      maxNamedPipeConnectionPoolSize="512"
+      maxNamedPipePooledConnectionAge="30000"
+      asyncCompletionThreadCount="0"
+      initialRequestBufferSize="4096"
+      maxRequestBufferSize="65536"
+      watchedFiles="*.js"
+      uncFileChangesPollingInterval="5000"
+      gracefulShutdownTimeout="60000"
+      loggingEnabled="true"
+      logDirectoryNameSuffix="logs"
+      debuggingEnabled="false"
+      devErrorsEnabled="false"
+      enableXFF="true"
+      promoteServerVars="LOGON_USER,AUTH_USER,AUTH_TYPE"
+      configOverrides="iisnode.yml"/>
+  </system.webServer>
+  <appSettings>
+    <add key="NODE_ENV" value="production"/>
+    <add key="WEBSITE_NODE_DEFAULT_VERSION" value="18.17.1"/>
+  </appSettings>
+</configuration>
+
+<!-- orchestrator/web.config -->
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
+    </handlers>
+    <rewrite>
+      <rules>
+        <rule name="StaticContent">
+          <action type="Rewrite" url="public{REQUEST_URI}"/>
+        </rule>
+        <rule name="DynamicContent">
+          <conditions>
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+          </conditions>
+          <action type="Rewrite" url="server.js"/>
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering removeServerHeader="true">
+        <requestLimits maxAllowedContentLength="104857600"/> <!-- 100 MB for file uploads -->
+      </requestFiltering>
+    </security>
+    <httpErrors existingResponse="PassThrough"/>
+    <iisnode 
+      node_env="production"
+      nodeProcessCountPerApplication="1"
+      maxConcurrentRequestsPerProcess="1024"
+      maxNamedPipeConnectionRetry="3"
+      namedPipeConnectionRetryDelay="2000"
+      maxNamedPipeConnectionPoolSize="512"
+      maxNamedPipePooledConnectionAge="30000"
+      asyncCompletionThreadCount="0"
+      initialRequestBufferSize="4096"
+      maxRequestBufferSize="65536"
+      watchedFiles="*.js"
+      uncFileChangesPollingInterval="5000"
+      gracefulShutdownTimeout="60000"
+      loggingEnabled="true"
+      logDirectoryNameSuffix="logs"
+      debuggingEnabled="false"
+      devErrorsEnabled="false"
+      enableXFF="true"
+      promoteServerVars="LOGON_USER,AUTH_USER,AUTH_TYPE"
+      configOverrides="iisnode.yml"/>
+  </system.webServer>
+  <appSettings>
+    <add key="NODE_ENV" value="production"/>
+    <add key="WEBSITE_NODE_DEFAULT_VERSION" value="18.17.1"/>
+  </appSettings>
+</configuration>

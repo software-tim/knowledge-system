@@ -1,0 +1,355 @@
+---
+// frontend/src/pages/upload.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Upload Document - Knowledge System">
+  <div class="px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Upload Document</h1>
+      <p class="text-gray-600">Upload your documents for AI-powered analysis and knowledge extraction</p>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <form id="upload-form" class="space-y-6">
+        <!-- File Upload Area -->
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+          <input type="file" id="file-input" class="hidden" accept=".txt,.md,.pdf,.doc,.docx" />
+          <div id="drop-zone" class="cursor-pointer">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <p class="text-lg text-gray-600 mb-2">
+              <span class="font-medium text-blue-600">Click to upload</span> or drag and drop
+            </p>
+            <p class="text-sm text-gray-500">
+              Supports: TXT, MD, PDF, DOC, DOCX (Max 50MB)
+            </p>
+          </div>
+          <div id="file-preview" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="text-2xl mr-3">📄</div>
+                <div>
+                  <div id="file-name" class="font-medium text-gray-900"></div>
+                  <div id="file-size" class="text-sm text-gray-500"></div>
+                </div>
+              </div>
+              <button type="button" id="remove-file" class="text-red-600 hover:text-red-800">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document Metadata -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+              Document Title
+            </label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title"
+              placeholder="Enter document title..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <select 
+              id="category" 
+              name="category"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select category...</option>
+              <option value="Technical Documentation">Technical Documentation</option>
+              <option value="Research Papers">Research Papers</option>
+              <option value="Business Reports">Business Reports</option>
+              <option value="Meeting Notes">Meeting Notes</option>
+              <option value="Policy Documents">Policy Documents</option>
+              <option value="Training Materials">Training Materials</option>
+              <option value="Legal Documents">Legal Documents</option>
+              <option value="Personal">Personal</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">
+            Tags (comma-separated)
+          </label>
+          <input 
+            type="text" 
+            id="tags" 
+            name="tags"
+            placeholder="ai, machine learning, research..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <p class="mt-1 text-sm text-gray-500">Add relevant tags to help with discovery and organization</p>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex justify-end">
+          <button 
+            type="submit"
+            id="submit-btn"
+            class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled
+          >
+            <span id="submit-text">Upload & Process</span>
+            <div id="submit-spinner" class="hidden inline-flex items-center ml-2">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            </div>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Processing Status -->
+    <div id="processing-status" class="hidden bg-blue-50 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-blue-900 mb-4">🔄 Processing Document</h3>
+      <div class="space-y-3">
+        <div class="flex items-center">
+          <div id="step1-icon" class="w-6 h-6 mr-3">⏳</div>
+          <span id="step1-text" class="text-blue-800">Uploading and storing document...</span>
+        </div>
+        <div class="flex items-center">
+          <div id="step2-icon" class="w-6 h-6 mr-3">⏳</div>
+          <span id="step2-text" class="text-blue-800">AI classification and analysis...</span>
+        </div>
+        <div class="flex items-center">
+          <div id="step3-icon" class="w-6 h-6 mr-3">⏳</div>
+          <span id="step3-text" class="text-blue-800">Extracting entities and building knowledge graph...</span>
+        </div>
+        <div class="flex items-center">
+          <div id="step4-icon" class="w-6 h-6 mr-3">⏳</div>
+          <span id="step4-text" class="text-blue-800">Generating insights and connections...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="hidden bg-green-50 rounded-lg p-6 mb-8">
+      <div class="flex items-start">
+        <div class="text-green-600 text-2xl mr-4">✅</div>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-green-900 mb-2">Document Processed Successfully!</h3>
+          <div id="success-details" class="text-green-800 mb-4"></div>
+          <div class="flex space-x-4">
+            <button onclick="window.location.reload()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+              Upload Another
+            </button>
+            <a href="/search" class="px-4 py-2 border border-green-600 text-green-600 rounded-md hover:bg-green-50 transition-colors">
+              Search Documents
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="hidden bg-red-50 rounded-lg p-6">
+      <div class="flex items-start">
+        <div class="text-red-600 text-2xl mr-4">❌</div>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-red-900 mb-2">Upload Failed</h3>
+          <p id="error-details" class="text-red-800 mb-4"></p>
+          <button onclick="resetForm()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+            Try Again
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const ORCHESTRATOR_URL = 'https://knowledge-orchestrator.azurewebsites.net';
+  let selectedFile = null;
+
+  // File upload handling
+  const fileInput = document.getElementById('file-input');
+  const dropZone = document.getElementById('drop-zone');
+  const filePreview = document.getElementById('file-preview');
+  const submitBtn = document.getElementById('submit-btn');
+
+  // Click to upload
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  // File selection
+  fileInput.addEventListener('change', handleFileSelect);
+
+  // Drag and drop
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-blue-400');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-blue-400');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-blue-400');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFile(files[0]);
+    }
+  });
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+      handleFile(file);
+    }
+  }
+
+  function handleFile(file) {
+    // Validate file type
+    const allowedTypes = ['.txt', '.md', '.pdf', '.doc', '.docx'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedTypes.includes(fileExtension)) {
+      alert('Please select a valid file type: TXT, MD, PDF, DOC, or DOCX');
+      return;
+    }
+
+    // Validate file size (50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+      alert('File size must be less than 50MB');
+      return;
+    }
+
+    selectedFile = file;
+    
+    // Show file preview
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = formatFileSize(file.size);
+    filePreview.classList.remove('hidden');
+    dropZone.style.display = 'none';
+    
+    // Auto-fill title if empty
+    const titleInput = document.getElementById('title');
+    if (!titleInput.value) {
+      titleInput.value = file.name.replace(/\.[^/.]+$/, '');
+    }
+    
+    // Enable submit button
+    submitBtn.disabled = false;
+  }
+
+  // Remove file
+  document.getElementById('remove-file').addEventListener('click', () => {
+    selectedFile = null;
+    fileInput.value = '';
+    filePreview.classList.add('hidden');
+    dropZone.style.display = 'block';
+    submitBtn.disabled = true;
+  });
+
+  // Form submission
+  document.getElementById('upload-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!selectedFile) {
+      alert('Please select a file to upload');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('title', document.getElementById('title').value);
+    formData.append('category', document.getElementById('category').value);
+    formData.append('tags', JSON.stringify(
+      document.getElementById('tags').value
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0)
+    ));
+    formData.append('user_id', 'web_user');
+
+    // Show processing status
+    showProcessingStatus();
+
+    try {
+      const response = await fetch(`${ORCHESTRATOR_URL}/api/upload-document`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      showSuccessMessage(result);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      showErrorMessage(error.message);
+    }
+  });
+
+  function showProcessingStatus() {
+    document.getElementById('processing-status').classList.remove('hidden');
+    document.getElementById('success-message').classList.add('hidden');
+    document.getElementById('error-message').classList.add('hidden');
+    
+    // Simulate processing steps
+    setTimeout(() => updateStep(1, '✅', 'Document uploaded and stored'), 1000);
+    setTimeout(() => updateStep(2, '✅', 'AI classification completed'), 3000);
+    setTimeout(() => updateStep(3, '✅', 'Entities extracted and graph updated'), 5000);
+    setTimeout(() => updateStep(4, '✅', 'Insights generated'), 7000);
+  }
+
+  function updateStep(stepNumber, icon, text) {
+    document.getElementById(`step${stepNumber}-icon`).textContent = icon;
+    document.getElementById(`step${stepNumber}-text`).textContent = text;
+  }
+
+  function showSuccessMessage(result) {
+    document.getElementById('processing-status').classList.add('hidden');
+    document.getElementById('success-message').classList.remove('hidden');
+    
+    const details = `
+      Document ID: ${result.document_id}<br>
+      Entities extracted: ${result.entities ? result.entities.length : 0}<br>
+      AI Classification: ${JSON.parse(result.classification.classification || '{}').category || 'Completed'}
+    `;
+    
+    document.getElementById('success-details').innerHTML = details;
+  }
+
+  function showErrorMessage(message) {
+    document.getElementById('processing-status').classList.add('hidden');
+    document.getElementById('error-message').classList.remove('hidden');
+    document.getElementById('error-details').textContent = message;
+  }
+
+  function resetForm() {
+    document.getElementById('error-message').classList.add('hidden');
+    document.getElementById('remove-file').click();
+    document.getElementById('upload-form').reset();
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+</script>

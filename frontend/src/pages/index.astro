@@ -1,0 +1,174 @@
+---
+// frontend/src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+
+// You can fetch data here if needed
+const ORCHESTRATOR_URL = import.meta.env.PUBLIC_ORCHESTRATOR_URL || 'https://knowledge-orchestrator.azurewebsites.net';
+---
+
+<Layout title="Knowledge Management System">
+  <div class="px-4 py-8">
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">
+        AI-Powered Knowledge Management
+      </h1>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Store, search, and discover insights from your documents using advanced AI, 
+        knowledge graphs, and intelligent search capabilities.
+      </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div class="flex items-center mb-4">
+          <div class="bg-blue-100 rounded-lg p-3">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+          </div>
+          <h3 class="ml-4 text-lg font-semibold text-gray-900">Upload Documents</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          Upload your documents and let AI automatically classify, extract entities, and build knowledge connections.
+        </p>
+        <a href="/upload" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+          Upload Now
+          <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+          </svg>
+        </a>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div class="flex items-center mb-4">
+          <div class="bg-green-100 rounded-lg p-3">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <h3 class="ml-4 text-lg font-semibold text-gray-900">Intelligent Search</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          Search across your documents, knowledge graph, and the web with AI-powered insights and connections.
+        </p>
+        <a href="/search" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+          Search Now
+          <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+          </svg>
+        </a>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div class="flex items-center mb-4">
+          <div class="bg-purple-100 rounded-lg p-3">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <h3 class="ml-4 text-lg font-semibold text-gray-900">View Analytics</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          Explore system usage, document trends, and knowledge graph insights to understand your information landscape.
+        </p>
+        <a href="/analytics" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+          View Analytics
+          <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">System Status</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="text-center">
+          <div class="text-2xl font-bold text-blue-600" id="documents-count">-</div>
+          <div class="text-sm text-gray-600">Documents Stored</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-green-600" id="graph-nodes">-</div>
+          <div class="text-sm text-gray-600">Knowledge Nodes</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-purple-600" id="graph-edges">-</div>
+          <div class="text-sm text-gray-600">Relationships</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-orange-600" id="interactions-today">-</div>
+          <div class="text-sm text-gray-600">Interactions Today</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+      <div id="recent-activity" class="space-y-3">
+        <div class="animate-pulse">
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Fetch system status when page loads
+  async function loadSystemStatus() {
+    try {
+      const ORCHESTRATOR_URL = 'https://knowledge-orchestrator.azurewebsites.net';
+      const response = await fetch(`${ORCHESTRATOR_URL}/api/status`);
+      const data = await response.json();
+      
+      // Update status numbers
+      if (data.status.database) {
+        document.getElementById('documents-count').textContent = data.status.database.total_documents || '0';
+        document.getElementById('graph-nodes').textContent = data.status.database.total_graph_nodes || '0';
+        document.getElementById('graph-edges').textContent = data.status.database.total_graph_edges || '0';
+        document.getElementById('interactions-today').textContent = data.status.database.interactions_today || '0';
+      }
+      
+      // Update recent activity
+      const activityContainer = document.getElementById('recent-activity');
+      if (data.status.recent_activity && data.status.recent_activity.length > 0) {
+        activityContainer.innerHTML = data.status.recent_activity
+          .slice(0, 5)
+          .map(activity => `
+            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  ${activity.action_type}
+                </span>
+                <span class="ml-3 text-sm text-gray-600">${activity.target_type}</span>
+              </div>
+              <span class="text-xs text-gray-400">
+                ${new Date(activity.created_at).toLocaleTimeString()}
+              </span>
+            </div>
+          `).join('');
+      } else {
+        activityContainer.innerHTML = '<p class="text-gray-500 text-sm">No recent activity</p>';
+      }
+      
+    } catch (error) {
+      console.error('Failed to load system status:', error);
+      // Show fallback data
+      document.getElementById('documents-count').textContent = '0';
+      document.getElementById('graph-nodes').textContent = '0';
+      document.getElementById('graph-edges').textContent = '0';
+      document.getElementById('interactions-today').textContent = '0';
+      
+      document.getElementById('recent-activity').innerHTML = 
+        '<p class="text-gray-500 text-sm">Unable to load recent activity</p>';
+    }
+  }
+  
+  // Load status when page loads
+  document.addEventListener('DOMContentLoaded', loadSystemStatus);
+</script>

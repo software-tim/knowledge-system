@@ -1,0 +1,338 @@
+---
+// frontend/src/pages/search.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Search - Knowledge System">
+  <div class="px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Intelligent Search</h1>
+      <p class="text-gray-600">Search across documents, knowledge graph, and the web with AI-powered insights</p>
+    </div>
+
+    <!-- Search Form -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <form id="search-form" class="space-y-4">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="flex-1">
+            <input 
+              type="text" 
+              id="search-query" 
+              placeholder="Enter your search query..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+              required
+            />
+          </div>
+          <button 
+            type="submit"
+            class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            🔍 Search
+          </button>
+        </div>
+        
+        <!-- Search Options -->
+        <div class="flex flex-wrap gap-4 pt-2">
+          <label class="flex items-center">
+            <input type="checkbox" id="include-web" class="mr-2">
+            <span class="text-sm text-gray-600">Include web search</span>
+          </label>
+          <div class="flex items-center">
+            <label for="result-limit" class="text-sm text-gray-600 mr-2">Results:</label>
+            <select id="result-limit" class="border border-gray-300 rounded px-2 py-1 text-sm">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="hidden text-center py-8">
+      <div class="inline-flex items-center">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+        <span class="text-gray-600">Searching across all knowledge sources...</span>
+      </div>
+    </div>
+
+    <!-- Search Results -->
+    <div id="search-results" class="hidden">
+      <!-- Results Summary -->
+      <div id="results-summary" class="bg-blue-50 rounded-lg p-4 mb-6">
+        <h2 class="text-lg font-semibold text-blue-900 mb-2">Search Results</h2>
+        <div id="summary-text" class="text-blue-800"></div>
+      </div>
+
+      <!-- AI Insights -->
+      <div id="ai-insights" class="bg-green-50 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-green-900 mb-3">🧠 AI Insights</h3>
+        <div id="insights-content" class="text-green-800 whitespace-pre-line"></div>
+      </div>
+
+      <!-- Tabbed Results -->
+      <div class="bg-white rounded-lg shadow-md">
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200">
+          <nav class="flex space-x-8 px-6">
+            <button id="tab-documents" class="tab-button py-4 text-sm font-medium border-b-2 border-blue-500 text-blue-600">
+              📄 Documents (<span id="docs-count">0</span>)
+            </button>
+            <button id="tab-graph" class="tab-button py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+              🕸️ Knowledge Graph (<span id="graph-count">0</span>)
+            </button>
+            <button id="tab-web" class="tab-button py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+              🌐 Web Results (<span id="web-count">0</span>)
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+          <!-- Documents Tab -->
+          <div id="content-documents" class="tab-content">
+            <div id="documents-list" class="space-y-4">
+              <!-- Documents will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Knowledge Graph Tab -->
+          <div id="content-graph" class="tab-content hidden">
+            <div id="graph-list" class="space-y-4">
+              <!-- Graph nodes will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Web Results Tab -->
+          <div id="content-web" class="tab-content hidden">
+            <div id="web-list" class="space-y-4">
+              <!-- Web results will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div id="no-results" class="hidden text-center py-12">
+      <div class="text-6xl mb-4">🔍</div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
+      <p class="text-gray-600">Try adjusting your search terms or including web search</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden bg-red-50 rounded-lg p-6">
+      <div class="flex items-center">
+        <div class="text-red-600 mr-3">⚠️</div>
+        <div>
+          <h3 class="text-lg font-semibold text-red-900">Search Error</h3>
+          <p id="error-message" class="text-red-800 mt-1"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const ORCHESTRATOR_URL = 'https://knowledge-orchestrator.azurewebsites.net';
+  
+  // Tab switching
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove active states
+        tabButtons.forEach(btn => {
+          btn.classList.remove('border-blue-500', 'text-blue-600');
+          btn.classList.add('border-transparent', 'text-gray-500');
+        });
+        tabContents.forEach(content => content.classList.add('hidden'));
+        
+        // Add active state to clicked tab
+        button.classList.remove('border-transparent', 'text-gray-500');
+        button.classList.add('border-blue-500', 'text-blue-600');
+        
+        // Show corresponding content
+        const tabId = button.id.replace('tab-', 'content-');
+        document.getElementById(tabId).classList.remove('hidden');
+      });
+    });
+  });
+
+  // Search form submission
+  document.getElementById('search-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const query = document.getElementById('search-query').value.trim();
+    if (!query) return;
+    
+    const includeWeb = document.getElementById('include-web').checked;
+    
+    // Show loading state
+    showLoading();
+    
+    try {
+      const response = await fetch(`${ORCHESTRATOR_URL}/api/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: query,
+          include_web: includeWeb,
+          user_id: 'web_user'
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      displayResults(data);
+      
+    } catch (error) {
+      console.error('Search error:', error);
+      showError(error.message);
+    } finally {
+      hideLoading();
+    }
+  });
+  
+  function showLoading() {
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('search-results').classList.add('hidden');
+    document.getElementById('no-results').classList.add('hidden');
+    document.getElementById('error-state').classList.add('hidden');
+  }
+  
+  function hideLoading() {
+    document.getElementById('loading').classList.add('hidden');
+  }
+  
+  function showError(message) {
+    document.getElementById('error-message').textContent = message;
+    document.getElementById('error-state').classList.remove('hidden');
+  }
+  
+  function displayResults(data) {
+    const hasResults = (data.results.documents?.count > 0) || 
+                      (data.results.graph?.count > 0) || 
+                      (data.results.web?.results?.length > 0);
+    
+    if (!hasResults) {
+      document.getElementById('no-results').classList.remove('hidden');
+      return;
+    }
+    
+    // Show results container
+    document.getElementById('search-results').classList.remove('hidden');
+    
+    // Update summary
+    const summary = data.summary;
+    document.getElementById('summary-text').innerHTML = `
+      Query: <strong>"${data.query}"</strong><br>
+      Found: ${summary.total_documents} documents, ${summary.total_graph_nodes} graph nodes
+      ${summary.include_web ? `, ${summary.web_results} web results` : ''}
+    `;
+    
+    // Update AI insights
+    if (data.insights && data.insights.insights) {
+      document.getElementById('insights-content').textContent = data.insights.insights;
+    }
+    
+    // Update tab counts
+    document.getElementById('docs-count').textContent = summary.total_documents || 0;
+    document.getElementById('graph-count').textContent = summary.total_graph_nodes || 0;
+    document.getElementById('web-count').textContent = summary.web_results || 0;
+    
+    // Populate documents
+    populateDocuments(data.results.documents?.documents || []);
+    
+    // Populate graph nodes
+    populateGraph(data.results.graph?.graph_data || []);
+    
+    // Populate web results
+    populateWeb(data.results.web?.results || []);
+  }
+  
+  function populateDocuments(documents) {
+    const container = document.getElementById('documents-list');
+    
+    if (documents.length === 0) {
+      container.innerHTML = '<p class="text-gray-500">No documents found</p>';
+      return;
+    }
+    
+    container.innerHTML = documents.map(doc => `
+      <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        <h3 class="font-semibold text-gray-900 mb-2">${doc.title}</h3>
+        <p class="text-gray-600 text-sm mb-3">${(doc.content || '').substring(0, 200)}...</p>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              ${doc.classification || 'Document'}
+            </span>
+            <span class="text-xs text-gray-500">
+              ${new Date(doc.created_at).toLocaleDateString()}
+            </span>
+          </div>
+          <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            View Details →
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  function populateGraph(nodes) {
+    const container = document.getElementById('graph-list');
+    
+    if (nodes.length === 0) {
+      container.innerHTML = '<p class="text-gray-500">No graph nodes found</p>';
+      return;
+    }
+    
+    container.innerHTML = nodes.map(node => `
+      <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-center mb-2">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+            ${node.node_type || node.type || 'Node'}
+          </span>
+          <h3 class="ml-3 font-semibold text-gray-900">${node.label || node.id}</h3>
+        </div>
+        ${node.properties ? `<p class="text-gray-600 text-sm">${JSON.stringify(JSON.parse(node.properties || '{}'), null, 2)}</p>` : ''}
+      </div>
+    `).join('');
+  }
+  
+  function populateWeb(results) {
+    const container = document.getElementById('web-list');
+    
+    if (results.length === 0) {
+      container.innerHTML = '<p class="text-gray-500">No web results found</p>';
+      return;
+    }
+    
+    container.innerHTML = results.map(result => `
+      <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        <h3 class="font-semibold text-blue-600 mb-2">
+          <a href="${result.url}" target="_blank" class="hover:underline">
+            ${result.title}
+          </a>
+        </h3>
+        <p class="text-gray-600 text-sm mb-3">${result.snippet || result.description}</p>
+        <div class="flex items-center justify-between">
+          <span class="text-green-600 text-sm">${result.displayUrl || result.url}</span>
+          <a href="${result.url}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            Open →
+          </a>
+        </div>
+      </div>
+    `).join('');
+  }
+</script>
