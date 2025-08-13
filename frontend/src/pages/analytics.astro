@@ -225,4 +225,8 @@ import Layout from '../layouts/Layout.astro';
       
       if (data.analytics) {
         const analytics = data.analytics;
-        updateElement('total-searches', Math.round(analytics.total_searches || 0));
+        updateElement('total-searches', Math.round(analytics.total_searches || 0));      }
+    } catch (error) {
+      console.error('Failed to load search analytics:', error);
+    }
+  }
