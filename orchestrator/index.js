@@ -21,9 +21,9 @@ const upload = multer({
 // MCP Server URLs
 const MCP_SERVERS = {
   phi4: process.env.PHI4_SERVER_URL || 'https://phi4-mcp-server.azurewebsites.net',
-  sql: process.env.SQL_SERVER_URL || 'https://azure-sql-mcp-server.azurewebsites.net',
-  graphrag: process.env.GRAPHRAG_SERVER_URL || 'https://graphrag-mcp-server.azurewebsites.net',
-  search: process.env.SEARCH_SERVER_URL || 'https://web-search-mcp-server.azurewebsites.net'
+  sql: process.env.SQL_SERVER_URL || 'https://knowledge-base-sql-server.azurewebsites.net',
+  graphrag: process.env.GRAPHRAG_SERVER_URL || 'https://knowledge-base-graphrag-server.azurewebsites.net',
+  search: process.env.SEARCH_SERVER_URL || 'https://knowledge-base-search-server.azurewebsites.net'
 };
 
 // Database configuration
@@ -547,5 +547,6 @@ initializeDatabase().then(() => {
     console.log('  GET  /api/recommendations/:user_id');
     console.log('  GET  /api/tools');
   });
-});/ /   U p d a t e d   f o r   d e p l o y m e n t  
+});/ /   U p d a t e d   f o r   d e p l o y m e n t 
+ 
  
