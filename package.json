@@ -2,8 +2,10 @@
   "name": "knowledge-system",
   "version": "1.0.0",
   "scripts": {
-    "start": "node orchestrator/src/index.js",
-    "postinstall": "cd orchestrator && npm install"
+    "start": "node simple-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
   },
   "engines": {
     "node": ">=18.0.0"
