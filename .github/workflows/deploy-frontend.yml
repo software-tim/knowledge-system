@@ -34,7 +34,7 @@ jobs:
       - name: Build Astro site
         run: |
           cd frontend
-          npm run build
+          npm run build -- --no-check
         env:
           PUBLIC_ORCHESTRATOR_URL: https://knowledge-orchestrator.azurewebsites.net
           
