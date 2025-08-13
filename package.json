@@ -1,0 +1,11 @@
+﻿{
+  "name": "knowledge-system",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node orchestrator/src/index.js",
+    "postinstall": "cd orchestrator && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
