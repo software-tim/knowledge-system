@@ -1,4 +1,4 @@
-// mcp-servers/phi4-server/index.js - Safe version with tools
+// mcp-servers/phi4-mcp-server/index.js - Safe version with tools
 
 const express = require('express');
 const cors = require('cors');
