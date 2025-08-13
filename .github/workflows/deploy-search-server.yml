@@ -1,0 +1,29 @@
+# .github/workflows/deploy-search-server.yml
+name: Deploy Search Server
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'mcp-servers/web-search-mcp-server/**' ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        working-directory: mcp-servers/web-search-mcp-server
+        run: npm install
+          
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'knowledge-base-search-server'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_SEARCH }}
+          package: 'mcp-servers/web-search-mcp-server'
