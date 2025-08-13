@@ -3,7 +3,7 @@
 import Layout from '../layouts/Layout.astro';
 
 // You can fetch data here if needed
-const ORCHESTRATOR_URL = import.meta.env.PUBLIC_ORCHESTRATOR_URL || 'https://knowledge-orchestrator.azurewebsites.net';
+const ORCHESTRATOR_URL = import.meta.env.PUBLIC_ORCHESTRATOR_URL || 'https://knowledge-base-orchestrator.azurewebsites.net';
 ---
 
 <Layout title="Knowledge Management System">
@@ -122,7 +122,7 @@ const ORCHESTRATOR_URL = import.meta.env.PUBLIC_ORCHESTRATOR_URL || 'https://kno
   // Fetch system status when page loads
   async function loadSystemStatus() {
     try {
-      const ORCHESTRATOR_URL = 'https://knowledge-orchestrator.azurewebsites.net';
+      const ORCHESTRATOR_URL = 'https://knowledge-base-orchestrator.azurewebsites.net';
       const response = await fetch(`${ORCHESTRATOR_URL}/api/status`);
       const data = await response.json();
       
